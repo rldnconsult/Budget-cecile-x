@@ -43,17 +43,17 @@ module.exports = async function handler(req, res) {
       required:['merchant','amount','date','category','confidence','comment','warnings','crop','corners']
     };
     const schema = { type:'object', additionalProperties:false, properties:{ receipts:{type:'array', items:receiptSchema}, globalWarnings:{type:'array', items:{type:'string'}} }, required:['receipts','globalWarnings'] };
-    const content = [{ type:'input_text', text:`Analyse une photo de justificatif pour une étudiante. Il peut y avoir un seul ticket ou plusieurs tickets visibles sur la même photo. Renvoie un objet par ticket reconnu indépendamment. Pour chaque ticket, extrais le montant TTC total, la date d'achat, l'enseigne, la catégorie probable, puis fournis deux indications géométriques pour conserver le justificatif proprement: (1) crop rectangulaire normalisé x,y,width,height entre 0 et 1 autour du ticket avec petite marge, (2) si les quatre coins du ticket sont visibles, corners normalisés tl,tr,br,bl pour permettre un redressage de perspective. Priorité absolue aux coordonnées fiables de rognage/redressage. Si les coins ne sont pas suffisamment fiables, mets corners à null mais donne crop. Catégories: food=alimentation/courses, restaurants=restaurant/snack/café, outings=sorties/loisirs, gifts=cadeaux, transport, health, hygiene, study, clothes, subscriptions, bank, equipment, home, other. Indice utilisateur: ${hint || 'aucun'}. Texte OCR éventuel: ${ocrText || 'aucun'}.` }];
-    if (imageDataUrl) content.push({ type:'input_image', image_url:imageDataUrl, detail:'auto' });
+    const content = [{ type:'input_text', text:`Analyse une photo de justificatif pour une étudiante. Il peut y avoir un seul ticket ou plusieurs tickets visibles sur la même photo. Renvoie un objet par ticket reconnu indépendamment. Pour chaque ticket, extrais le montant TTC total, la date d'achat, l'enseigne, la catégorie probable, puis fournis deux indications géométriques pour conserver le justificatif proprement: (1) crop rectangulaire normalisé x,y,width,height entre 0 et 1 autour du ticket avec petite marge, (2) si les quatre coins du ticket sont visibles, corners normalisés tl,tr,br,bl pour permettre un redressage de perspective. Priorité absolue au rognage et au redressage: cherche précisément les bords du papier, puis les quatre coins visibles. Les coordonnées géométriques sont aussi importantes que le montant. Si les coins ne sont pas suffisamment fiables, mets corners à null mais donne crop. Catégories: food=alimentation/courses, restaurants=restaurant/snack/café, outings=sorties/loisirs, gifts=cadeaux, transport, health, hygiene, study, clothes, subscriptions, bank, equipment, home, other. Indice utilisateur: ${hint || 'aucun'}. Texte OCR éventuel: ${ocrText || 'aucun'}.` }];
+    if (imageDataUrl) content.push({ type:'input_image', image_url:imageDataUrl, detail:'high' });
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 28000);
+    const timer = setTimeout(() => controller.abort(), 30000);
     const response = await fetch('https://api.openai.com/v1/responses', {
       method:'POST', signal: controller.signal,
       headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},
       body:JSON.stringify({
         model: process.env.OPENAI_RECEIPT_MODEL || 'gpt-5-mini',
         input:[{role:'user',content}],
-        max_output_tokens: 1100,
+        max_output_tokens: 1200,
         text:{format:{type:'json_schema',name:'receipt_batch',strict:true,schema}}
       })
     });

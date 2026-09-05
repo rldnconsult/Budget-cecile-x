@@ -1,13 +1,12 @@
 {
   "name": "budget-cecile-saclay",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "private": true,
   "type": "commonjs",
   "scripts": {
     "lint": "node -c api/receipt.js && node -c api/sync.js && node -c api/report.js"
   },
   "dependencies": {
-    "@neondatabase/serverless": "latest",
-    "pdf-lib": "latest"
+    "@neondatabase/serverless": "latest"
   }
 }
