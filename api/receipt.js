@@ -290,10 +290,10 @@ module.exports = async function handler(req, res) {
       };
     });
 
-    return send(res, 200, { ok: true, configured: true, version: '2.1.10', results: receipts, globalWarnings: parsed.globalWarnings || [] });
+    return send(res, 200, { ok: true, configured: true, version: '2.1.11', results: receipts, globalWarnings: parsed.globalWarnings || [] });
   } catch (error) {
     const status = error && error.status ? error.status : 504;
-    return send(res, status, { ok: false, configured: true, version: '2.1.10', error: 'Lecture automatique impossible pour ce ticket. Relance la lecture ou complète à la main.' });
+    return send(res, status, { ok: false, configured: true, version: '2.1.11', error: 'Lecture automatique impossible pour ce ticket. Relance la lecture ou complète à la main.' });
   }
 };
 
