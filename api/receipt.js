@@ -193,17 +193,18 @@ async function callOpenAI({ imageDataUrl, categories, hint }) {
 Priorités absolues:
 1. détecter chaque ticket visible séparément;
 2. extraire le fournisseur/enseigne, la date d'achat, le montant final payé TTC, la catégorie;
-3. fournir un crop serré du papier avec une petite marge;
-4. fournir les 4 coins uniquement s'ils sont visibles et fiables.
+3. ne jamais laisser fournisseur/date/montant vides quand ils sont lisibles;
+4. fournir un crop léger du papier avec une petite marge;
+5. fournir les 4 coins uniquement s'ils sont visibles et fiables.
 
 Règles de lecture:
 - merchant = enseigne principale, pas l'adresse, pas la ville, pas le numéro de caisse;
-- amount = total réellement payé, total TTC, montant carte, montant CB ou à payer;
+- amount = total réellement payé, total TTC, montant carte, montant CB ou à payer; privilégie le montant final le plus bas dans le bloc de paiement si un rendu monnaie apparaît;
 - ne pas choisir TVA, HT, sous-total, rendu monnaie ou prix unitaire;
 - date au format YYYY-MM-DD;
 - rawText doit contenir les lignes importantes lues sur le ticket;
 - amountCandidates doit contenir plusieurs montants possibles avec la ligne d'origine;
-- category doit être l'identifiant le plus probable parmi les catégories disponibles.
+- category doit être l'identifiant le plus probable parmi les catégories disponibles; utilise les mots-clés et le type de commerce.
 
 Catégories disponibles:
 ${categoryText}
@@ -223,7 +224,7 @@ Indice utilisateur: ${hint || 'aucun'}`
         model,
         input: [{ role: 'user', content }],
         max_output_tokens: 1500,
-        text: { format: { type: 'json_schema', name: 'receipt_reader_v217', strict: true, schema } }
+        text: { format: { type: 'json_schema', name: 'receipt_reader_v219', strict: true, schema } }
       })
     });
     clearTimeout(timer);
@@ -245,7 +246,7 @@ module.exports = async function handler(req, res) {
   if (!process.env.OPENAI_API_KEY) return send(res, 503, { ok: false, configured: false, error: 'Lecture automatique indisponible.' });
   try {
     const body = JSON.parse((await readBody(req)) || '{}');
-    const imageDataUrl = body.imageDataUrl || body.optimizedImageDataUrl || '';
+    const imageDataUrl = body.imageDataUrl || body.optimizedImageDataUrl || body.originalImageDataUrl || '';
     const ocrText = body.ocrText || '';
     const categories = safeCategories(body.categories);
     if (!imageDataUrl && !ocrText) return send(res, 400, { ok: false, error: 'Image requise.' });
@@ -288,10 +289,10 @@ module.exports = async function handler(req, res) {
       };
     });
 
-    return send(res, 200, { ok: true, configured: true, version: '2.1.7', results: receipts, globalWarnings: parsed.globalWarnings || [] });
+    return send(res, 200, { ok: true, configured: true, version: '2.1.9', results: receipts, globalWarnings: parsed.globalWarnings || [] });
   } catch (error) {
     const status = error && error.status ? error.status : 504;
-    return send(res, status, { ok: false, configured: true, version: '2.1.7', error: 'Lecture automatique impossible pour ce ticket. Relance la lecture ou complète à la main.' });
+    return send(res, status, { ok: false, configured: true, version: '2.1.9', error: 'Lecture automatique impossible pour ce ticket. Relance la lecture ou complète à la main.' });
   }
 };
 
