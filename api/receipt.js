@@ -203,8 +203,9 @@ Règles de lecture:
 - ne pas choisir TVA, HT, sous-total, rendu monnaie ou prix unitaire;
 - date au format YYYY-MM-DD;
 - rawText doit contenir les lignes importantes lues sur le ticket;
+- seules les dépenses ordinary consomment le budget; les valeurs extraordinary et school sont des frais d'information;
 - amountCandidates doit contenir plusieurs montants possibles avec la ligne d'origine;
-- category doit être l'identifiant le plus probable parmi les catégories disponibles; utilise les mots-clés et le type de commerce.
+- category doit être l'identifiant le plus probable parmi les catégories disponibles; utilise les mots-clés et le type de commerce; budgetBucket doit valoir ordinary pour le budget ordinaire, extraordinary pour un frais exceptionnel à tracer seulement pour information, ou school pour la scolarité à tracer seulement pour information.
 
 Catégories disponibles:
 ${categoryText}
@@ -224,7 +225,7 @@ Indice utilisateur: ${hint || 'aucun'}`
         model,
         input: [{ role: 'user', content }],
         max_output_tokens: 1500,
-        text: { format: { type: 'json_schema', name: 'receipt_reader_v219', strict: true, schema } }
+        text: { format: { type: 'json_schema', name: 'receipt_reader_v2110', strict: true, schema } }
       })
     });
     clearTimeout(timer);
@@ -289,10 +290,10 @@ module.exports = async function handler(req, res) {
       };
     });
 
-    return send(res, 200, { ok: true, configured: true, version: '2.1.9', results: receipts, globalWarnings: parsed.globalWarnings || [] });
+    return send(res, 200, { ok: true, configured: true, version: '2.1.10', results: receipts, globalWarnings: parsed.globalWarnings || [] });
   } catch (error) {
     const status = error && error.status ? error.status : 504;
-    return send(res, status, { ok: false, configured: true, version: '2.1.9', error: 'Lecture automatique impossible pour ce ticket. Relance la lecture ou complète à la main.' });
+    return send(res, status, { ok: false, configured: true, version: '2.1.10', error: 'Lecture automatique impossible pour ce ticket. Relance la lecture ou complète à la main.' });
   }
 };
 
